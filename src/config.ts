@@ -2,44 +2,59 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
-export type Config = {
+type Config = {
   dbUrl: string,
-  userName : string
+  currentUserName : string
 }
 
 
 function getConfigPath(): string{
-  return os.homedir();
+  return path.join(os.homedir(), '.gatorconfig.json');
 }
 
 function validateConfig(rawConfig: any): Config {
-  const response = JSON.parse(rawConfig);
+  if(!rawConfig.db_url || typeof rawConfig.db_url !== "string"){
+    throw new Error("db_url is required");
+  }
 
-  return response;
+  if(!rawConfig.current_user_name || typeof rawConfig.current_user_name !== "string"){
+    rawConfig.current_user_name = "";
+  }
+
+  return {
+    dbUrl: rawConfig.db_url,
+    currentUserName: rawConfig.current_user_name
+  }
 }
 
 
-
-// export function setUser(){}
-
-
-
-export function readConfig(): void {
-    fs.readFile(path.join(getConfigPath(), '.gatorconfig.json'), 'utf8', (err, data) => {
-      if(err){
-        console.log(err);
-        return;
-      }
-      console.log(data);
-  });
+export function setUser(userName : string){
+  const config = readConfig();
+  config.currentUserName = userName;
+  writeConfig(config);
 }
 
 
-function writeConfig(): void {
+export function readConfig(): Config {
+    try{
+      const data = fs.readFileSync(getConfigPath(), 'utf8');
+      const parsed = JSON.parse(data);
+      return validateConfig(parsed);
+    }catch(err){
+      throw new Error(`Failed to read config: ${err}`);
+    }
+}
+
+
+function writeConfig(cfg:Config): void {
   try{
+    const plainObj = {  
+      db_url: cfg.dbUrl,
+      current_user_name : cfg.currentUserName
+    }
     fs.writeFileSync(
-      path.join('files', 'starter3.txt'),
-      'Hello World',
+      getConfigPath(),
+      JSON.stringify(plainObj),
       'utf8'
     );
     console.log('success')
@@ -47,13 +62,3 @@ function writeConfig(): void {
     console.log('Error: ', err);
   }
 }
-
-// fs.writeFileSync(path.join('files', 'starter2.txt'), 'Hello World', (err: ) => {
-//   if(err) throw err;
-//   console.log("Write complete");
-// })
-
-// readConfig();
-writeConfig();
-
-// validateConfig(newConfig.dbURL);
