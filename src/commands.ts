@@ -1,25 +1,12 @@
-import { setUser } from "./config";
+import { CommandHandler } from './commandHandler';
+import { CommandsRegistry } from "./commandRegistry";
+import { gatorLogin } from './gatorLogin';
 
-type CommandHandler = (cmdName: string, ...args: string[]) => void;
-
-function handlerLogin(cmdName: string, ...args: string[]){
-  if(args.length == 0){
-    throw new Error("Args must contain username.")
+export function getCommands() : Record<string, CommandsRegistry>{
+  return{
+    login:{
+      name: "gator login",
+      cmdName: gatorLogin(),
+    }
   }
-  setUser(args[0]);
-
-  console.log("User has been set.");
 }
-
-type CommandsRegistry = {
-  cmdName: CommandHandler
-}
-
-function registerCommand(registry: CommandsRegistry, cmdName: string, handler: CommandHandler){
-  //*
-}
-
-function runCommand(registry: CommandsRegistry, cmdName: string, ...args: string[]){
-  //*
-}
-
